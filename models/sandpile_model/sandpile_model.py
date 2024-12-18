@@ -5,7 +5,8 @@ from enums.stress_introduction_type import StressIntroductionType
 class SandpileModel:
 
     def __init__(self, number_agents=30, grid_size=(20,20), placement_type=PlacementType.RANDOM, stress_threshold=4, 
-                 stress_introduction_type=None, num_stress_introduction=None, probability_stress_introduction=None):
+                 stress_introduction_type=None, num_stress_introduction=None, probability_stress_introduction=None,
+                 leaving_threshold=None):
         self.number_agents = number_agents
         self.grid_size = grid_size
         self.placement_type = placement_type
@@ -13,6 +14,7 @@ class SandpileModel:
         self.stress_introduction_type = stress_introduction_type
         self.num_stress_introduction = num_stress_introduction
         self.probability_stress_introduction = probability_stress_introduction
+        self.leaving_threshold = leaving_threshold
 
         if num_stress_introduction and probability_stress_introduction:
             raise Exception("Cannot impose the number of agents to add stress to and the probability of adding stress at the same time. Please supply only one of these values.")
@@ -54,6 +56,13 @@ class SandpileModel:
             adjacent_cells[cell_idx] = neighbours    
         self.adjacent_cells = adjacent_cells
 
+    def is_cell_on_border(self, cell_idx):
+        is_left = cell_idx < self.grid_size[0]
+        is_right = cell_idx > (self.grid_size[0] * (self.grid_size[1]-1))
+        is_top = cell_idx % self.grid_size[0] == 0
+        is_bottom = cell_idx % self.grid_size[0] == (self.grid_size[1]-1)
+        return is_left or is_right or is_top or is_bottom
+
     def initialise_grid(self):
         grid = {i: [] for i in range(self.grid_size[0] * self.grid_size[1])}
         placements = {}
@@ -74,8 +83,11 @@ class SandpileModel:
     def compute_stress_levels_from_neighbours(self):
         stress_levels = np.zeros(self.number_agents)
         for i in range(self.number_agents):
-            neighbouring_cells = self.adjacent_cells[self.placements[i]]
-            stress_levels[i] = np.sum([len(self.grid[neighbour_cell]) for neighbour_cell in neighbouring_cells])
+            if self.placements[i] < 0:
+                continue
+            else:
+                neighbouring_cells = self.adjacent_cells[self.placements[i]]
+                stress_levels[i] = np.sum([len(self.grid[neighbour_cell]) for neighbour_cell in neighbouring_cells])
         return stress_levels
     
     def check_stress_levels(self, stress_levels):
@@ -84,11 +96,19 @@ class SandpileModel:
         if len(indices) > 0:
             for i in indices:
                 current_cell = self.placements[i]
-                neighbour_density = {neighbour_cell: len(self.grid[neighbour_cell]) for neighbour_cell in self.adjacent_cells[current_cell]}
-                new_cell = min(neighbour_density, key=neighbour_density.get)
+
+                if self.placements[i] < 0:
+                    continue # if the agent has already left, we don't care anymore
+
+                if self.leaving_threshold and stress_levels[i] > self.leaving_threshold and self.is_cell_on_border(current_cell):
+                    self.placements[i] = -current_cell
+                else:
+                    neighbour_density = {neighbour_cell: len(self.grid[neighbour_cell]) for neighbour_cell in self.adjacent_cells[current_cell]}
+                    new_cell = min(neighbour_density, key=neighbour_density.get)
+                    self.grid[new_cell].append(i)
+                    self.placements[i] = new_cell
+
                 self.grid[current_cell].remove(i)
-                self.grid[new_cell].append(i)
-                self.placements[i] = new_cell
 
     def introduce_stress(self, stress_levels_intrinsic):
         if self.num_stress_introduction:

@@ -12,6 +12,7 @@ n = 20
 grid_size = (5,5)
 
 stress_threshold = 4
+leaving_threshold = 8
 
 placement_type = PlacementType.RANDOM
 stress_intro_type = StressIntroductionType.FLOAT_POS_NEG
@@ -25,7 +26,8 @@ simulator = SandpileModel(number_agents=n,
                           stress_threshold=stress_threshold,
                           stress_introduction_type=stress_intro_type,
                           num_stress_introduction=num_stress_intro,
-                          probability_stress_introduction=prob_stress_intro)
+                          probability_stress_introduction=prob_stress_intro,
+                          leaving_threshold=leaving_threshold)
 
 simulation_data = simulator.simulate(tmax=tmax)
 times, placements, densities, stress_levels = simulation_data
