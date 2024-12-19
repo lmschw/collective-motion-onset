@@ -1,4 +1,4 @@
-from models.sandpile_model.sandpile_model import SandpileModel
+from models.sandpile_model.sandpile_model_basic_non_exclusive import SandpileModel
 
 from enums.placement_type import PlacementType
 from enums.stress_introduction_type import StressIntroductionType
@@ -8,7 +8,7 @@ from animation.heatplot_animator import HeatplotAnimatorDensity, HeatplotAnimato
 
 
 tmax = 200
-n = 20
+n = 30
 grid_size = (5,5)
 
 stress_threshold = 4
@@ -32,9 +32,7 @@ simulator = SandpileModel(number_agents=n,
 simulation_data = simulator.simulate(tmax=tmax)
 times, placements, densities, stress_levels = simulation_data
 
-print(placements)
-print(densities)
-print(stress_levels)
+print(placements[tmax-1])
 
 model_params = {'n': n/2, 'domainSize': grid_size}
 
@@ -50,7 +48,7 @@ preparedAnimator.setParams(model_params)
 
 preparedAnimator.saveAnimation(f"{animation_filename}.mp4")
 
-model_params = {'n': stress_threshold + 1, 'domainSize': grid_size}
+model_params = {'n': leaving_threshold + 1, 'domainSize': grid_size}
 
 animation_filename = f"{animation_filename_base}_stress"
 animator = MatplotlibAnimator(simulation_data, (100,100,100))
