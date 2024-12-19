@@ -50,7 +50,7 @@ class HeatplotAnimator(Animator):
         leaving_str = f"left from: "
         for k, v in cts.items():
             if k < 0:
-                leaving_str += f"{-k}: {v}, "
+                leaving_str += f"{int(-k)}: {v}, "
         leaving_str += f"new leavers: {new_count}"
         return leaving_str
     
