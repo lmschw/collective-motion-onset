@@ -1,3 +1,5 @@
-import tests.test_service_grid as tsg
+from tests.test_service_preparation import TestServicePreparation
+from tests.test_service_grid import TestServiceGrid
 
-tsg.run_all()
+TestServicePreparation().run_all()
+TestServiceGrid().run_all()
