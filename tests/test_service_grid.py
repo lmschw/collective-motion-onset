@@ -174,13 +174,14 @@ def test_get_adjacent_square_cells_eight():
             assert result[j] == expected_more_cols[i][j], f"get_adjacent_square_cells_eight() fails for more columns with index {i} and {j} returning {result[j]} instead of {expected_more_cols[i][j]}"              
 
 
-test_is_first_column()
-test_is_last_column()
-test_is_top_row()
-test_is_bottom_row()
-test_get_adjacent_cross_cells_distance_one()
-test_get_adjacent_square_cells_eight()
-print("all tests have passed")
+def run_all():
+    test_is_first_column()
+    test_is_last_column()
+    test_is_top_row()
+    test_is_bottom_row()
+    test_get_adjacent_cross_cells_distance_one()
+    test_get_adjacent_square_cells_eight()
+    print("all tests have passed")
 
 """
 0   4   8   12
