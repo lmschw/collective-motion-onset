@@ -1,4 +1,3 @@
-import numpy as np
 import math
 
 def is_first_column(cell_idx, grid_size):
