@@ -7,10 +7,10 @@ import services.service_grid as sgrid
 
 class SandpileModel:
 
-    def __init__(self, number_agents, grid_size, weights, placement_type, cell_visibility):
+    def __init__(self, number_agents, grid_size, model, placement_type, cell_visibility):
         self.number_agents = number_agents
         self.grid_size = grid_size
-        self.weights = weights
+        self.model = model
         self.placement_type = placement_type
         self.cell_visibility = cell_visibility
 
@@ -24,17 +24,16 @@ class SandpileModel:
         """
         adjacent_cells = {}
         for cell_idx in range(self.grid_size[0] * self.grid_size[1]):
-            neighbours = [] # always check the particle's own cell
             match self.cell_visibility:
                 case CellVisibility.CROSS_ONE:
                     top, right, bottom, left = sgrid.get_adjacent_cross_cells_distance_one(cell_idx=cell_idx, grid_size=self.grid_size)
                     adjacent_cells[cell_idx] = [top, right, bottom, left]
                 case CellVisibility.SQUARE_EIGHT:
                     adjacent_cells[cell_idx] = sgrid.get_adjacent_square_cells_eight(cell_idx=cell_idx, grid_size=self.grid_size)
-
-  
-            adjacent_cells[cell_idx] = neighbours    
         self.adjacent_cells = adjacent_cells
+
+    def get_adjacent_values(self, cell_idx):
+        pass
 
     def initialise_grid(self):
         grid = {i: [] for i in range(self.grid_size[0] * self.grid_size[1])}
@@ -52,6 +51,8 @@ class SandpileModel:
         self.grid = grid
         self.placements = placements
         self.determine_adjacency()
+
+
 
     def get_neighbourhood(self):
         neighbours = np.zeros((self.number_agents, self.cell_visibility.number_cells))
