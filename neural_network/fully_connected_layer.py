@@ -23,3 +23,6 @@ class FullyConnectedLayer:
         self.weights -= learning_rate * weights_error
         self.bias -= learning_rate * output_error
         return input_error
+    
+    def set_weights(self, weights):
+        self.weights = weights
