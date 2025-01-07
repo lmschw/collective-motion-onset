@@ -122,7 +122,7 @@ class DifferentialEvolution:
         model = self.create_neural_network(weights=weights)
         for i in range(self.num_iterations_per_individual):
             simulator = SandpileModel(
-                                        number_agents=self.num_particles,
+                                        num_agents=self.num_particles,
                                         grid_size=self.domain_size,
                                         model=model,
                                         placement_type_prey=self.placement_type_prey,
