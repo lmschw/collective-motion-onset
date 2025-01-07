@@ -41,8 +41,30 @@ class SandpileModel:
         return [self.grid[cell] for cell in self.adjacent_cells[cell_idx]]
 
     def initialise_grid(self):
-        grid = {i: [] for i in range(self.grid_size[0] * self.grid_size[1])}
-        placements = {}
+        grid = {i: {'pred': [], 'prey': []} for i in range(self.grid_size[0] * self.grid_size[1])}
+        placements_predators = {}
+        for predator in range(self.num_predators):
+            match self.placement_type_predator:
+                case PlacementTypePredator.BORDER:
+                    rand = np.random.randint(0,4)
+                    match rand:
+                        case 0: # first column
+                            rand_x = 0
+                            rand_y = np.random.randint(0, self.grid_size[1])
+                        case 1: # bottom
+                            rand_x = np.random.randint(0, self.grid_size[0])
+                            rand_y = self.grid_size[0]
+                        case 2: # last column
+                            rand_x = self.grid_size[0]
+                            rand_y = np.random.randint(0, self.grid_size[1])
+                        case 3: # top
+                            rand_x = np.random.randint(0, self.grid_size[0])
+                            rand_y = 0
+                    cell = rand_y[i] * self.grid_size[0] + rand_x[i]
+                    grid[cell]['pred'].append(i)
+                    placements_predators[i] = cell
+
+        placements_prey = {}
         match self.placement_type_prey:
             case PlacementTypePrey.EQUIDISTANT:
                 pass
@@ -51,10 +73,10 @@ class SandpileModel:
                 rand_y = np.random.randint(0, self.grid_size[1], self.num_agents)
                 for i in range(self.num_agents):
                     cell = rand_y[i] * self.grid_size[0] + rand_x[i]
-                    grid[cell].append(i)
-                    placements[i] = cell
+                    grid[cell]['prey'].append(i)
+                    placements_prey[i] = cell
         self.grid = grid
-        self.placements = placements
+        self.placements_prey = placements_prey
         self.determine_adjacency()
 
     def get_neighbourhood(self):
