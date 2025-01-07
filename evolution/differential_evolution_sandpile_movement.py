@@ -13,17 +13,20 @@ import services.service_neural_network as snn
 import services.service_preparation as sprep
 from simulators.sandpile_model.sandpile_model_movement import SandpileModel
 
+from enums.cell_visibility import CellVisibility
 from enums.metrics import Metrics
 from enums.predator_behaviour import PredatorBehaviour
+from enums.placement_type import PlacementTypePrey, PlacementTypePredator
 
 
 class DifferentialEvolution:
     def __init__(self, radius, tmax, domain_size=(None, None), density=None, num_particles=None, speed=1, 
                  noise_percentage=0, num_generations=1000, num_iterations_per_individual=1, use_norm=True, 
                  population_size=100, bounds=[-1, 1], update_to_zero_bounds=[0,0], mutation_scale_factor=1, 
-                 crossover_rate=0.5, early_stopping_after_gens=None, num_directions=4, allow_stay=True,
-                 num_predators=1, predator_behaviour=PredatorBehaviour.NEAREST_PREY, 
-                 metric=Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP):
+                 crossover_rate=0.5, early_stopping_after_gens=None, cell_visibility=CellVisibility.SQUARE_EIGHT, 
+                 num_directions=4, allow_stay=True, placement_type_prey=PlacementTypePrey.RANDOM, 
+                 placement_type_predator=PlacementTypePredator.RANDOM, num_predators=1, 
+                 predator_behaviour=PredatorBehaviour.NEAREST_PREY, metric=Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP):
         """
         Models the DE approach.
 
@@ -63,8 +66,11 @@ class DifferentialEvolution:
         self.crossover_rate = crossover_rate
         self.early_stopping_after_gens = early_stopping_after_gens
 
+        self.cell_visibility = cell_visibility
         self.num_directions = num_directions
         self.allow_stay = allow_stay
+        self.placement_type_prey = placement_type_prey
+        self.placement_type_predator = placement_type_predator
         self.num_predators = num_predators
         self.predator_behaviour = predator_behaviour
         self.metric = metric
@@ -115,14 +121,19 @@ class DifferentialEvolution:
         weights = self.update_weights(weights)
         model = self.create_neural_network(weights=weights)
         for i in range(self.num_iterations_per_individual):
-            initialState = (None, None, None)  # TODO consider different starting conditions
-            simulator = SandpileModel(domain_size=self.domain_size,
-                                radius=self.radius,
-                                noise=self.noise,
-                                speed=self.speed,
-                                num_particles=self.num_particles,
-                                model=model)
-            simulation_data = simulator.simulate(tmax=self.tmax, initialState=initialState)
+            simulator = SandpileModel(
+                                        number_agents=self.num_particles,
+                                        grid_size=self.domain_size,
+                                        model=model,
+                                        placement_type_prey=self.placement_type_prey,
+                                        cell_visibility=self.cell_visibility,
+                                        num_directions=self.num_directions,
+                                        allow_stay=self.allow_stay,
+                                        num_predators=self.num_predators,
+                                        predator_behaviour=self.predator_behaviour,
+                                        placement_type_predator=self.placement_type_predator
+                                    )
+            simulation_data = simulator.simulate(tmax=self.tmax)
             survivals = simulation_data
             results.append(self.evaluate_results(survivals=survivals))
         fitness = np.average(results)

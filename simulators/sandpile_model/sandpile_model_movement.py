@@ -1,19 +1,20 @@
 import numpy as np
 
-from enums.placement_type import PlacementType
 from enums.cell_visibility import CellVisibility
-
+from enums.placement_type import PlacementTypePrey, PlacementTypePredator
+from enums.predator_behaviour import PredatorBehaviour
 import services.service_grid as sgrid
 
 class SandpileModel:
 
-    def __init__(self, number_agents, grid_size, model, placement_type, cell_visibility):
+    def __init__(self, number_agents, grid_size, model, placement_type_prey, cell_visibility, num_directions=4, allow_stay=True,
+                 num_predators=1, predator_behaviour=PredatorBehaviour.NEAREST_PREY, placement_type_predator=PlacementTypePredator.RANDOM):
         self.number_agents = number_agents
         self.grid_size = grid_size
         self.model = model
-        self.placement_type = placement_type
+        self.placement_type_prey = placement_type_prey
+        self.placement_type_predator = placement_type_predator
         self.cell_visibility = cell_visibility
-
 
     def determine_adjacency(self):
         """
@@ -38,10 +39,10 @@ class SandpileModel:
     def initialise_grid(self):
         grid = {i: [] for i in range(self.grid_size[0] * self.grid_size[1])}
         placements = {}
-        match self.placement_type:
-            case PlacementType.EQUIDISTANT:
+        match self.placement_type_prey:
+            case PlacementTypePrey.EQUIDISTANT:
                 pass
-            case PlacementType.RANDOM:
+            case PlacementTypePrey.RANDOM:
                 rand_x = np.random.randint(0, self.grid_size[0], self.number_agents)
                 rand_y = np.random.randint(0, self.grid_size[1], self.number_agents)
                 for i in range(self.number_agents):
@@ -51,8 +52,6 @@ class SandpileModel:
         self.grid = grid
         self.placements = placements
         self.determine_adjacency()
-
-
 
     def get_neighbourhood(self):
         neighbours = np.zeros((self.number_agents, self.cell_visibility.number_cells))
