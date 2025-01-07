@@ -24,7 +24,7 @@ class DifferentialEvolution:
                  noise_percentage=0, num_generations=1000, num_iterations_per_individual=1, use_norm=True, 
                  population_size=100, bounds=[-1, 1], update_to_zero_bounds=[0,0], mutation_scale_factor=1, 
                  crossover_rate=0.5, early_stopping_after_gens=None, cell_visibility=CellVisibility.SQUARE_EIGHT, 
-                 num_directions=4, allow_stay=True, placement_type_prey=PlacementTypePrey.RANDOM, 
+                 num_directions=4, allow_stay=True, agents_per_cell_limit=2, placement_type_prey=PlacementTypePrey.RANDOM, 
                  placement_type_predator=PlacementTypePredator.RANDOM, num_predators=1, 
                  predator_behaviour=PredatorBehaviour.NEAREST_PREY, metric=Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP):
         """
@@ -69,6 +69,7 @@ class DifferentialEvolution:
         self.cell_visibility = cell_visibility
         self.num_directions = num_directions
         self.allow_stay = allow_stay
+        self.agents_per_cell_limit = agents_per_cell_limit
         self.placement_type_prey = placement_type_prey
         self.placement_type_predator = placement_type_predator
         self.num_predators = num_predators
@@ -129,6 +130,7 @@ class DifferentialEvolution:
                                         cell_visibility=self.cell_visibility,
                                         num_directions=self.num_directions,
                                         allow_stay=self.allow_stay,
+                                        agents_per_cell_limit=self.agents_per_cell_limit,
                                         num_predators=self.num_predators,
                                         predator_behaviour=self.predator_behaviour,
                                         placement_type_predator=self.placement_type_predator
