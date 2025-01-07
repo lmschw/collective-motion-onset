@@ -5,12 +5,12 @@ import numpy as np
 Service containing methods to do with logging.
 """
 
-def create_headers(len_c_values, is_best=False):
+def create_headers(len_weights, is_best=False):
     """
     Creates the headers for the csv file.
 
     Params:
-        - len_c_values (int): how many values are in the c_values
+        - len_weights (int): how many values are in the weights
         - is_best (boolean): if the log is meant for the best result or for individual results
 
     Returns:
@@ -21,7 +21,7 @@ def create_headers(len_c_values, is_best=False):
     else:
         headers = ['iter', 'ind']
     
-    individual_headers = [f"individual_{i}" for i in range(len_c_values)]
+    individual_headers = [f"individual_{i}" for i in range(len_weights)]
     headers.extend(individual_headers)
     headers.append('fitness')
     headers.append('fitness_order')
@@ -59,7 +59,7 @@ def create_dicts_for_logging(iter, individuals, fitnesses, fitnesses_order):
         dict_list.append(create_dict(iter, ind, individuals[ind], fitnesses[ind], fitnesses_order[ind]))
     return prepare_individuals_for_csv_logging(dict_list)
 
-def create_dict(iter, ind, c_values, fitness, fitness_order):
+def create_dict(iter, ind, weights, fitness, fitness_order):
     """
     Creates a dictionary for an individual.
 
@@ -72,7 +72,7 @@ def create_dict(iter, ind, c_values, fitness, fitness_order):
     Returns:
         A dictionary.
     """
-    return {'iter': iter, 'ind': ind, 'individual': c_values, 'fitness': fitness, 'fitness_order': fitness_order}
+    return {'iter': iter, 'ind': ind, 'individual': weights, 'fitness': fitness, 'fitness_order': fitness_order}
 
 def prepare_individuals_for_csv_logging(dict_list):
     """
