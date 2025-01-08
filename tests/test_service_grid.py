@@ -12,7 +12,6 @@ class TestServiceGrid(unittest.TestCase):
         for i in range(len(test_coordinates_square)):
             assert sgrid.is_first_column(cell_idx=test_coordinates_square[i], grid_size=grid_size_square) == expected_square[i], f"Is first column fails for square with index {i}"
 
-
     def test_is_last_column(self):
         grid_size_square = (4,4)
         grid_size_more_rows = (5,4)
@@ -176,6 +175,23 @@ class TestServiceGrid(unittest.TestCase):
             result = sgrid.get_adjacent_square_cells_eight(cell_idx=test_coordinates_more_cols[i], grid_size=grid_size_more_columns)
             for j in range(len(expected_more_cols[i])):
                 assert result[j] == expected_more_cols[i][j], f"get_adjacent_square_cells_eight() fails for more columns with index {i} and {j} returning {result[j]} instead of {expected_more_cols[i][j]}"              
+
+    def test_get_grid_cell_idx(self):
+        """
+        0   6   12  18  24
+        1   7   13  19  25
+        2   8   14  20  26
+        3   9   15  21  27
+        4   10  16  22  28
+        5   11  17  23  29
+        """
+        grid_size = (6, 5)
+        xs = [0, 3, 5]
+        ys = [0, 2, 4]
+        expected_cell_idx = [[0, 12, 24], [3, 15, 27], [5, 17, 29]]
+        for i in range(len(xs)):
+            for j in range(len(ys)):
+                assert expected_cell_idx[i][j] == sgrid.get_grid_cell_idx(x=xs[i], y=ys[j], grid_size=grid_size)
 
     def run_all(self):
         unittest.main(exit=False)

@@ -12,7 +12,6 @@ def is_top_row(cell_idx, grid_size):
 def is_bottom_row(cell_idx, grid_size):
     return cell_idx % grid_size[0] == (grid_size[0]-1)
 
-
 def get_adjacent_cross_cells_distance_one(cell_idx, grid_size):
     # top is one less unless the cell is in the top row. Otherwise, it is the bottom of the same column 
     if is_top_row(cell_idx=cell_idx, grid_size=grid_size):
@@ -96,3 +95,6 @@ def get_adjacent_square_cells_eight(cell_idx, grid_size):
         top_left = cell_idx - grid_size[0] -1
 
     return [top, top_right, right, bottom_right, bottom, bottom_left, left, top_left]
+
+def get_grid_cell_idx(x, y, grid_size):
+    return y * grid_size[0] + x
