@@ -98,3 +98,6 @@ def get_adjacent_square_cells_eight(cell_idx, grid_size):
 
 def get_grid_cell_idx(x, y, grid_size):
     return y * grid_size[0] + x
+
+def get_x_y_for_cell_idx(cell_idx, grid_size):
+    return cell_idx % grid_size[0], int(cell_idx / grid_size[0])

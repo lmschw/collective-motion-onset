@@ -193,6 +193,15 @@ class TestServiceGrid(unittest.TestCase):
             for j in range(len(ys)):
                 assert expected_cell_idx[i][j] == sgrid.get_grid_cell_idx(x=xs[i], y=ys[j], grid_size=grid_size)
 
+    def test_get_x_y_for_cell_idx(self):
+        grid_size = (6, 5)
+        cell_indices = [0, 3, 5, 12, 15, 17, 24, 27, 29]
+        coordinates = [[0, 0], [3, 0], [5, 0], [0, 2], [3, 2], [5, 2], [0, 4], [3, 4], [5, 4]]
+        for i in range(len(cell_indices)):
+            coords = sgrid.get_x_y_for_cell_idx(cell_idx=cell_indices[i], grid_size=grid_size)
+            assert coordinates[i][0] == coords[0]
+            assert coordinates[i][1] == coords[1]
+
     def run_all(self):
         unittest.main(exit=False)
 
