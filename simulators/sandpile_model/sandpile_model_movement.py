@@ -6,10 +6,11 @@ from enums.placement_type import PlacementTypePrey, PlacementTypePredator
 from enums.predator_behaviour import PredatorBehaviour
 from models.agents import Agent
 import services.service_grid as sgrid
+import services.service_helper as shelp
 
 class SandpileModel:
 
-    def __init__(self, num_agents, grid_size, model, placement_type_prey, cell_visibility, num_directions=4, allow_stay=True,
+    def __init__(self, num_agents, grid_size, model, placement_type_prey, cell_visibility, allow_stay=True,
                  agents_per_cell_limit=2, num_predators=1, predator_behaviour=PredatorBehaviour.NEAREST_PREY, 
                  placement_type_predator=PlacementTypePredator.RANDOM):
         self.num_agents = num_agents
@@ -17,7 +18,6 @@ class SandpileModel:
         self.model = model
         self.placement_type_prey = placement_type_prey
         self.cell_visibility = cell_visibility
-        self.num_directions = num_directions
         self.allow_stay = allow_stay
         self.agents_per_cell_limit = agents_per_cell_limit
         self.num_predators = num_predators
@@ -25,6 +25,12 @@ class SandpileModel:
         self.placement_type_predator = placement_type_predator
 
         self.agents = [i for i in range(self.num_agents + self.num_predators)]
+
+        # TODO: replace with an enum to allow movement other than cross
+        self.num_directions = 4
+        self.directions = [i for i in range(self.num_directions)]
+        if self.allow_stay:
+            self.directions.append(self.num_directions + 1)
 
         self.initialise_grid()
 
@@ -218,10 +224,38 @@ class SandpileModel:
         neighbours = np.zeros((self.num_agents, self.cell_visibility.number_cells))
         for i in range(self.num_agents):
             neighbours[i] = self.get_adjacent_values(self.pl[i])
-                    
+
+    def pick_direction(self, neighbourhood):
+        predictions = self.model.predict(input_data=[neighbourhood])
+        probabilites = predictions[0][0]
+        probabilites = shelp.normalise(values=probabilites)
+        return np.random.choice(a=self.directions, size=1, replace=True, p=probabilites)
+    
+    def get_cell_idx_for_direction(self, cell_idx, direction):
+        x, y = sgrid.get_x_y_for_cell_idx(cell_idx=cell_idx)
+        match direction:
+            case 0: # up
+                x = (x - 1) % self.grid_size[0] 
+            case 1: # right
+                y = (y + 1) % self.grid_size[1]
+            case 2: # down
+                x = (x + 1) % self.grid_size[0]
+            case 3: # left
+                y = (y - 1) % self.grid_size[1]
+            case 4: # stay put
+                pass 
+        return sgrid.get_grid_cell_idx(x, y, self.grid_size)
 
     def make_moves(self):
-        pass
+        for agent in self.agents:
+            cell_idx = self.placements[agent]
+            neighbourhood = self.get_neighbourhood(agent)
+            direction = self.pick_direction(neighbourhood=neighbourhood)
+            new_cell_idx = self.get_cell_idx_for_direction(cell_idx=cell_idx, direction=direction)
+            if new_cell_idx != cell_idx and self.is_placement_in_cell_allowed(cell_idx=cell_idx, agent_id=agent):
+                self.placements[agent] = new_cell_idx
+                self.grid[cell_idx].remove(agent)
+                self.grid[new_cell_idx].append(agent)
 
     def simulate(self, tmax=1000, dt=1):
         pass
