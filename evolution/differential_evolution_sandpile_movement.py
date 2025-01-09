@@ -52,7 +52,6 @@ class DifferentialEvolution:
 
         self.num_generations = num_generations
         self.num_iterations_per_individual = num_iterations_per_individual
-        self.noise = sprep.get_noise_amplitude_value_for_percentage(self.noise_percentage)
 
         self.tmax = tmax
         self.use_norm = use_norm
@@ -79,19 +78,21 @@ class DifferentialEvolution:
         elif density != None and not any(ele is None for ele in grid_size):
             self.density = density
             self.grid_size = grid_size
-            self.num_particles = sprep.get_number_of_particles_for_constant_density(density, self.grid_size)
+            self.num_particles = sprep.get_number_of_particles_for_constant_density_for_grid(self.density, self.grid_size, self.agents_per_cell_limit)
         elif num_particles and not any(ele is None for ele in grid_size):
             self.num_particles = num_particles
             self.grid_size = grid_size
-            self.density = sprep.get_density(self.grid_size, self.num_particles)
+            self.density = sprep.get_density_for_grid(self.grid_size, self.num_particles, self.agents_per_cell_limit)
         else:
             self.density = density
             self.num_particles = num_particles
-            self.grid_size = sprep.get_grid_size_for_constant_density(self.density, self.num_particles)
+            self.grid_size = sprep.get_grid_size_for_constant_density(self.density, self.num_particles, self.agents_per_cell_limit)
 
-        self.c_value_size = self.num_directions
+        # TODO add enum to include other options
+        self.c_value_size = self.cell_visibility.number_cells
+        self.directions = 4
         if self.allow_stay:
-            self.c_value_size += 1
+            self.directions += 1
 
         print(f"dom={self.grid_size}, d={self.density}, n={self.num_particles}")
 
@@ -100,18 +101,18 @@ class DifferentialEvolution:
 
     def create_neural_network(self, weights):
         nn = NeuralNetwork()
-        fully_connected_layer = FullyConnectedLayer(input_size=self.c_value_size, output_size=1)
+        fully_connected_layer = FullyConnectedLayer(input_size=self.c_value_size, output_size=self.directions)
         fully_connected_layer.set_weights(weights=weights)
         nn.add(fully_connected_layer)
         nn.add(ActivationLayer(activation=snn.tanh, activation_prime=snn.tanh_prime))
         return nn
 
-    def evaluate_results(self, survivals):
+    def evaluate_results(self, agents):
         match self.metric:
             case Metrics.LONGEST_SURVIVAL:
-                return (self.tmax - smet.compute_longest_survival(survivals=survivals)) / self.tmax
+                return (self.tmax - smet.compute_longest_survival(agents=agents, num_predators=self.num_predators)) / self.tmax
             case Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP:
-                return (self.num_particles - smet.compute_num_survivors_at_the_end(survivals=survivals)) / self.num_particles
+                return (self.num_particles - smet.compute_num_survivors_at_the_end(agents=agents, num_predators=self.num_predators)) / self.num_particles
 
     def fitness_function(self, weights):
         results = []
@@ -124,16 +125,14 @@ class DifferentialEvolution:
                                         model=model,
                                         placement_type_prey=self.placement_type_prey,
                                         cell_visibility=self.cell_visibility,
-                                        num_directions=self.num_directions,
                                         allow_stay=self.allow_stay,
                                         agents_per_cell_limit=self.agents_per_cell_limit,
                                         num_predators=self.num_predators,
                                         predator_behaviour=self.predator_behaviour,
-                                        placement_type_predator=self.placement_type_predator
+                                        placement_type_predator=self.placement_type_predator,
                                     )
-            simulation_data = simulator.simulate(tmax=self.tmax)
-            survivals = simulation_data
-            results.append(self.evaluate_results(survivals=survivals))
+            agents, placements, grid = simulator.simulate(tmax=self.tmax)
+            results.append(self.evaluate_results(agents=agents))
         fitness = np.average(results)
         return fitness
     
