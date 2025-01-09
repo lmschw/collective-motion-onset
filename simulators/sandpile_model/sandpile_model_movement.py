@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 from enums.agent_type import AgentType
 from enums.cell_visibility import CellVisibility
@@ -31,8 +32,6 @@ class SandpileModel:
         self.directions = [i for i in range(self.num_directions)]
         if self.allow_stay:
             self.directions.append(self.num_directions + 1)
-
-        self.initialise_grid()
 
     def print_grid(self):
         line = "".join([f"\t{i}" for i in range(self.grid_size[1])])
@@ -86,7 +85,7 @@ class SandpileModel:
         arr = np.array(list)
         return arr[arr >= self.num_predators]
     
-    def get_prey_ids_from_cell(self, cell_idx):
+    def get_prey_ids_from_cell(self, cell_idx, grid=None):
         cell = np.array(self.grid[cell_idx])
         return cell[cell >= self.num_predators]
     
@@ -97,14 +96,19 @@ class SandpileModel:
             self.placements.pop(agent_id)
             self.agents.remove(agent_id)
         
-    def eliminate_prey(self, cell_idx):
+    def eliminate_prey_from_cell(self, cell_idx):
         preys = self.get_prey_ids_from_cell(cell_idx=cell_idx)
         if len(preys) == 0:
             raise Exception("Tried to eliminate a prey but no prey is present")
         victim = np.random.choice(preys, 1)[0]
         self.remove_prey_from_cell_by_id(agent_id=victim, cell_idx=cell_idx)
+
+    def eliminate_prey(self):
+        for cell_idx in self.grid:
+            if len(self.get_predator_ids_from_cell(cell_idx=cell_idx)) > 0 and len(self.get_prey_ids_from_cell(cell_idx=cell_idx)) > 0:
+                self.eliminate_prey_from_cell(cell_idx=cell_idx)
         
-    def is_placement_in_cell_allowed(self, cell_idx, agent_id, is_check_only=False):
+    def is_placement_in_cell_allowed(self, cell_idx, agent_id):
         preys = self.get_prey_ids_from_cell(cell_idx=cell_idx)
         predators = self.get_predator_ids_from_cell(cell_idx=cell_idx)
         # if it is a predator
@@ -114,8 +118,6 @@ class SandpileModel:
                 return False
             # if there is prey, then the predator can move there and will kill a prey agent
             if len(preys) > 0:
-                if not is_check_only:
-                    self.eliminate_prey(cell_idx=cell_idx)
                 return True
         else: # if it is a prey
             # there cannot be more than the limit of allowed prey
@@ -143,7 +145,7 @@ class SandpileModel:
                 y = 0
         return x, y
     
-    def place_predator(self, agent_id):
+    def place_predator(self, agent_id, grid, placements):
         match self.placement_type_predator:
             case PlacementTypePredator.BORDER:
                 x, y = self.__choose_x_y_on_border()
@@ -196,10 +198,11 @@ class SandpileModel:
                     y = np.random.randint(0, self.grid_size[1])
 
         cell = sgrid.get_grid_cell_idx(x=x, y=y, grid_size=self.grid_size)
-        self.grid[cell].append(agent_id)
-        self.placements[agent_id] = cell
+        grid[cell].append(agent_id)
+        placements[agent_id] = cell
+        return grid, placements
 
-    def place_prey(self, agent_id):
+    def place_prey(self, agent_id, grid, placements):
         match self.placement_type_prey:
             case PlacementTypePrey.EQUIDISTANT:
                 # TODO: implement equidistant placement of pry
@@ -212,21 +215,24 @@ class SandpileModel:
                     y = np.random.randint(0, self.grid_size[1])
 
         cell = sgrid.get_grid_cell_idx(x=x, y=y, grid_size=self.grid_size)
-        self.grid[cell].append(agent_id)
-        self.placements[agent_id] = cell
+        grid[cell].append(agent_id)
+        placements[agent_id] = cell
+        return grid, placements
     
-    def place_agent(self, agent_id):
+    def place_agent(self, agent_id, grid, placements):
         if self.is_predator(agent_id=agent_id):
-            self.place_predator(agent_id=agent_id)
+            return self.place_predator(agent_id=agent_id, grid=grid, placements=placements)
         else:
-            self.place_prey(agent_id=agent_id)
+            return self.place_prey(agent_id=agent_id, grid=grid, placements=placements)
 
     def initialise_grid(self):
-        self.grid = {i: [] for i in range(self.grid_size[0] * self.grid_size[1])}
+        grid = {i: [] for i in range(self.grid_size[0] * self.grid_size[1])}
         self.determine_adjacency()
-        self.placements = {i: -1 for i in range(len(self.agents))}
+        placements = {i: -1 for i in range(len(self.agents))}
         for agent in self.agents:
-            self.place_agent(agent_id=agent)            
+            self.grid = grid
+            grid, placements = self.place_agent(agent_id=agent, grid=grid, placements=placements) 
+        return grid, placements          
 
     def get_neighbourhood(self, agent_id):
         neighbourhood = np.zeros(self.cell_visibility.number_cells)
@@ -244,12 +250,12 @@ class SandpileModel:
                 if self.cell_visibility == CellVisibility.CROSS_ONE:
                     for cell in range(len(adjacent_cells)):
                         preys = self.get_prey_ids_from_list(adjacent_cells[cell])
-                        if len(preys) > 0 and self.is_placement_in_cell_allowed(cell_idx=self.adjacent_cells[self.placements[agent_id]][cell], agent_id=agent_id, is_check_only=True):
+                        if len(preys) > 0 and self.is_placement_in_cell_allowed(cell_idx=self.adjacent_cells[self.placements[agent_id]][cell], agent_id=agent_id):
                             return cell
                 if self.cell_visibility == CellVisibility.SQUARE_EIGHT:
                     for cell in range(0, len(adjacent_cells), 2):
                         preys = self.get_prey_ids_from_list(adjacent_cells[cell])
-                        if len(preys) > 0 and self.is_placement_in_cell_allowed(cell_idx=self.adjacent_cells[self.placements[agent_id]][cell], agent_id=agent_id, is_check_only=True):
+                        if len(preys) > 0 and self.is_placement_in_cell_allowed(cell_idx=self.adjacent_cells[self.placements[agent_id]][cell], agent_id=agent_id):
                             return cell / 2
         return 4 # default: stay put
                     
@@ -278,7 +284,9 @@ class SandpileModel:
                 pass 
         return sgrid.get_grid_cell_idx(x, y, self.grid_size)
 
-    def make_moves(self):
+    def make_moves(self, grid, placements):
+        self.grid = copy.deepcopy(grid)
+        self.placements = copy.deepcopy(placements)
         for agent in self.agents:
             cell_idx = self.placements[agent]
             if self.is_predator(agent_id=agent):
@@ -288,16 +296,21 @@ class SandpileModel:
                 direction = self.pick_prey_direction(neighbourhood=neighbourhood)
             new_cell_idx = self.get_cell_idx_for_direction(cell_idx=cell_idx, direction=direction)
             if new_cell_idx != cell_idx and self.is_placement_in_cell_allowed(cell_idx=new_cell_idx, agent_id=agent):
-                self.placements[agent] = new_cell_idx
-                self.grid[cell_idx].remove(agent)
-                self.grid[new_cell_idx].append(agent)
+                placements[agent] = new_cell_idx
+                grid[cell_idx].remove(agent)
+                grid[new_cell_idx].append(agent)
+        return grid, placements
 
     def simulate(self, tmax=1000):
         grid_history = []
         placements_history = []
         agents_history = []
+        grid, placements = self.initialise_grid()
         for t in range(tmax):
-            self.make_moves()
+            grid, placements = self.make_moves(grid, placements)
+            self.grid = grid
+            self.placements = placements
+            self.eliminate_prey()
             grid_history.append(self.grid)
             placements_history.append(self.placements)
             agents_history.append(self.agents)
