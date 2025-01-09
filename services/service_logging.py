@@ -24,7 +24,6 @@ def create_headers(len_weights, is_best=False):
     individual_headers = [f"individual_{i}" for i in range(len_weights)]
     headers.extend(individual_headers)
     headers.append('fitness')
-    headers.append('fitness_order')
     return headers
 
 def initialise_log_file_with_headers(headers, save_path):
@@ -42,7 +41,7 @@ def initialise_log_file_with_headers(headers, save_path):
         w = csv.writer(f)
         w.writerow(headers)
 
-def create_dicts_for_logging(iter, individuals, fitnesses, fitnesses_order):
+def create_dicts_for_logging(iter, individuals, fitnesses):
     """
     Creates the dictionaries from the data.
 
@@ -56,10 +55,10 @@ def create_dicts_for_logging(iter, individuals, fitnesses, fitnesses_order):
     """
     dict_list = []
     for ind in range(len(individuals)):
-        dict_list.append(create_dict(iter, ind, individuals[ind], fitnesses[ind], fitnesses_order[ind]))
+        dict_list.append(create_dict(iter, ind, individuals[ind], fitnesses[ind]))
     return prepare_individuals_for_csv_logging(dict_list)
 
-def create_dict(iter, ind, weights, fitness, fitness_order):
+def create_dict(iter, ind, weights, fitness):
     """
     Creates a dictionary for an individual.
 
@@ -72,7 +71,7 @@ def create_dict(iter, ind, weights, fitness, fitness_order):
     Returns:
         A dictionary.
     """
-    return {'iter': iter, 'ind': ind, 'individual': weights, 'fitness': fitness, 'fitness_order': fitness_order}
+    return {'iter': iter, 'ind': ind, 'individual': weights, 'fitness': fitness}
 
 def prepare_individuals_for_csv_logging(dict_list):
     """
