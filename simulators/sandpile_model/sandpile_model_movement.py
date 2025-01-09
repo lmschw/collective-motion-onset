@@ -259,6 +259,8 @@ class SandpileModel:
         probabilites = predictions[0][0]
         probabilites[probabilites < 0] = 0
         probabilites = shelp.normalise(values=probabilites)
+        if np.sum(probabilites) == 0: # in this case, all probabilities are 0 and thus it doesn't matter what we pick
+            return np.random.choice(a=self.directions, size=1)
         return np.random.choice(a=self.directions, size=1, replace=True, p=probabilites)
     
     def get_cell_idx_for_direction(self, cell_idx, direction):
@@ -299,7 +301,7 @@ class SandpileModel:
             grid_history.append(self.grid)
             placements_history.append(self.placements)
             agents_history.append(self.agents)
-            print(f"t={t}/{tmax}")
-            self.print_grid()
+            # print(f"t={t}/{tmax}")
+            # self.print_grid()
         return agents_history, placements_history, grid_history
 
