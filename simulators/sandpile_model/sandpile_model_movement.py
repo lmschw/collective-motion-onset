@@ -311,9 +311,9 @@ class SandpileModel:
             self.grid = grid
             self.placements = placements
             self.eliminate_prey()
-            grid_history.append(self.grid)
-            placements_history.append(self.placements)
-            agents_history.append(self.agents)
+            grid_history.append(copy.deepcopy(self.grid))
+            placements_history.append(copy.deepcopy(self.placements))
+            agents_history.append(copy.deepcopy(self.agents))
             # print(f"t={t}/{tmax}")
             # self.print_grid()
         return agents_history, placements_history, grid_history
