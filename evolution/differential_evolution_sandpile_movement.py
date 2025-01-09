@@ -20,11 +20,11 @@ from enums.placement_type import PlacementTypePrey, PlacementTypePredator
 
 
 class DifferentialEvolution:
-    def __init__(self, radius, tmax, grid_size=(None, None), density=None, num_particles=None, speed=1, 
-                 noise_percentage=0, num_generations=1000, num_iterations_per_individual=1, use_norm=True, 
-                 population_size=100, bounds=[-1, 1], update_to_zero_bounds=[0,0], mutation_scale_factor=1, 
+    def __init__(self, tmax, grid_size=(None, None), density=None, num_particles=None, 
+                 num_generations=1000, num_iterations_per_individual=1, use_norm=True, 
+                 population_size=100, bounds=[0, 1], update_to_zero_bounds=[0,0], mutation_scale_factor=1, 
                  crossover_rate=0.5, early_stopping_after_gens=None, cell_visibility=CellVisibility.SQUARE_EIGHT, 
-                 num_directions=4, allow_stay=True, agents_per_cell_limit=2, placement_type_prey=PlacementTypePrey.RANDOM, 
+                 allow_stay=True, agents_per_cell_limit=2, placement_type_prey=PlacementTypePrey.RANDOM, 
                  placement_type_predator=PlacementTypePredator.RANDOM, num_predators=1, 
                  predator_behaviour=PredatorBehaviour.NEAREST_PREY, metric=Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP):
         """
@@ -50,11 +50,8 @@ class DifferentialEvolution:
             - bounds (list of 2 ints) [optional, default=[-1, 1]]: the bounds for the c_value generation
         """
 
-        self.radius = radius
         self.num_generations = num_generations
         self.num_iterations_per_individual = num_iterations_per_individual
-        self.speed = speed
-        self.noise_percentage = noise_percentage
         self.noise = sprep.get_noise_amplitude_value_for_percentage(self.noise_percentage)
 
         self.tmax = tmax
@@ -67,7 +64,6 @@ class DifferentialEvolution:
         self.early_stopping_after_gens = early_stopping_after_gens
 
         self.cell_visibility = cell_visibility
-        self.num_directions = num_directions
         self.allow_stay = allow_stay
         self.agents_per_cell_limit = agents_per_cell_limit
         self.placement_type_prey = placement_type_prey
