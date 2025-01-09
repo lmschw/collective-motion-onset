@@ -41,8 +41,8 @@ class SandpileModel:
             line = f"{x}"
             for y in range(self.grid_size[1]):
                 cell_idx = sgrid.get_grid_cell_idx(x=x, y=y, grid_size=self.grid_size)
-                preys = self.get_prey_ids(cell_idx=cell_idx)
-                predators = self.get_predator_ids(cell_idx=cell_idx)
+                preys = self.get_prey_ids_from_cell(cell_idx=cell_idx)
+                predators = self.get_predator_ids_from_cell(cell_idx=cell_idx)
                 prey_string = "".join([f"P{i}" for i in preys])
                 predator_string = "".join([f"H{i}" for i in predators])
                 line += f"\t{predator_string}{prey_string}"
@@ -74,11 +74,19 @@ class SandpileModel:
     def is_prey(self, agent_id):
         return not self.is_predator(agent_id=agent_id)
     
-    def get_predator_ids(self, cell_idx):
+    def get_predators_ids_from_list(self, list):
+        arr = np.array(list)
+        return arr[arr < self.num_predators]
+    
+    def get_predator_ids_from_cell(self, cell_idx):
         cell = np.array(self.grid[cell_idx])
         return cell[cell < self.num_predators]
     
-    def get_prey_ids(self, cell_idx):
+    def get_prey_ids_from_list(self, list):
+        arr = np.array(list)
+        return arr[arr >= self.num_predators]
+    
+    def get_prey_ids_from_cell(self, cell_idx):
         cell = np.array(self.grid[cell_idx])
         return cell[cell >= self.num_predators]
     
@@ -90,15 +98,15 @@ class SandpileModel:
             self.agents.remove(agent_id)
         
     def eliminate_prey(self, cell_idx):
-        preys = self.get_prey_ids(cell_idx=cell_idx)
+        preys = self.get_prey_ids_from_cell(cell_idx=cell_idx)
         if len(preys) == 0:
             raise Exception("Tried to eliminate a prey but no prey is present")
         victim = np.random.randint(0, len(preys))
         self.remove_prey_from_cell_by_id(agent_id=victim, cell_idx=cell_idx)
         
     def is_placement_in_cell_allowed(self, cell_idx, agent_id, is_check_only=False):
-        preys = self.get_prey_ids(cell_idx=cell_idx)
-        predators = self.get_predator_ids(cell_idx=cell_idx)
+        preys = self.get_prey_ids_from_cell(cell_idx=cell_idx)
+        predators = self.get_predator_ids_from_cell(cell_idx=cell_idx)
         # if it is a predator
         if self.is_predator(agent_id=agent_id):
             # there cannot be more than the limit of allowed predators
@@ -220,19 +228,24 @@ class SandpileModel:
         for agent in self.agents:
             self.place_agent(agent_id=agent)            
 
-    def get_neighbourhood(self):
-        neighbours = np.zeros((self.num_agents, self.cell_visibility.number_cells))
-        for i in range(self.num_agents):
-            neighbours[i] = self.get_adjacent_values(self.pl[i])
+    def get_neighbourhood(self, agent_id):
+        neighbourhood = np.zeros(self.cell_visibility.number_cells)
+        neighbours = self.get_adjacent_values(self.placements[agent_id])
+        for neighbour_idx in range(self.cell_visibility.number_cells):
+            preys = self.get_prey_ids_from_list(neighbours[neighbour_idx])
+            predators = self.get_predators_ids_from_list(neighbours[neighbour_idx])
+            neighbourhood[neighbour_idx] = len(preys) + 3 * len(predators)
+        return neighbourhood
 
     def pick_direction(self, neighbourhood):
         predictions = self.model.predict(input_data=[neighbourhood])
         probabilites = predictions[0][0]
+        probabilites[probabilites < 0] = 0
         probabilites = shelp.normalise(values=probabilites)
         return np.random.choice(a=self.directions, size=1, replace=True, p=probabilites)
     
     def get_cell_idx_for_direction(self, cell_idx, direction):
-        x, y = sgrid.get_x_y_for_cell_idx(cell_idx=cell_idx)
+        x, y = sgrid.get_x_y_for_cell_idx(cell_idx=cell_idx, grid_size=self.grid_size)
         match direction:
             case 0: # up
                 x = (x - 1) % self.grid_size[0] 
@@ -257,6 +270,16 @@ class SandpileModel:
                 self.grid[cell_idx].remove(agent)
                 self.grid[new_cell_idx].append(agent)
 
-    def simulate(self, tmax=1000, dt=1):
-        pass
+    def simulate(self, tmax=1000):
+        grid_history = []
+        placements_history = []
+        agents_history = []
+        for t in range(tmax):
+            self.make_moves()
+            grid_history.append(self.grid)
+            placements_history.append(self.placements)
+            agents_history.append(self.agents)
+            print(f"t={t}/{tmax}")
+            self.print_grid()
+        return agents_history, placements_history, grid_history
 
