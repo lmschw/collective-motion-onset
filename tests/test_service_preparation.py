@@ -49,5 +49,15 @@ class TestServicePreparation(unittest.TestCase):
                 assert np.absolute(expected_non_squared[i][j] - sprep.get_density_for_grid(grid_size=grid_size_more_rows, number_of_particles=agents_non_squared[i], agents_per_cell_limit=agents_per_cell_limits[j])) < 0.001
                 assert np.absolute(expected_non_squared[i][j] - sprep.get_density_for_grid(grid_size=grid_size_more_cols, number_of_particles=agents_non_squared[i], agents_per_cell_limit=agents_per_cell_limits[j])) < 0.001
 
+    def test_get_grid_size_for_constant_density(self):
+        densities = [0.1, 0.5, 1]
+        num_agents = [10, 50]
+        limits = [1, 2]
+        for i in range(len(densities)):
+            for j in range(len(num_agents)):
+                for k in range(len(limits)):
+                    result = sprep.get_grid_size_for_constant_density(density=densities[i], number_of_particles=num_agents[j], agents_per_cell_limit=limits[k])
+                    assert num_agents[j] == sprep.get_number_of_particles_for_constant_density_for_grid(density=densities[i], grid_size=result, agents_per_cell_limit=limits[k])
+
     def run_all(self):
         unittest.main(exit=False)

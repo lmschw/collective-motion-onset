@@ -43,3 +43,9 @@ def get_density_for_grid(grid_size, number_of_particles, agents_per_cell_limit):
     """
     max_agents = grid_size[0] * grid_size[1] * agents_per_cell_limit
     return number_of_particles / max_agents # n / area
+
+def get_grid_size_for_constant_density(density, number_of_particles, agents_per_cell_limit):
+    print(density, number_of_particles, agents_per_cell_limit)
+    area = int(number_of_particles / (agents_per_cell_limit * density))
+    factors = [[i, area//i] for i in range(1, int(area**0.5) + 1) if area % i == 0]
+    return factors[-1]
