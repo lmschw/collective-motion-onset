@@ -20,7 +20,7 @@ from enums.placement_type import PlacementTypePrey, PlacementTypePredator
 
 
 class DifferentialEvolution:
-    def __init__(self, radius, tmax, domain_size=(None, None), density=None, num_particles=None, speed=1, 
+    def __init__(self, radius, tmax, grid_size=(None, None), density=None, num_particles=None, speed=1, 
                  noise_percentage=0, num_generations=1000, num_iterations_per_individual=1, use_norm=True, 
                  population_size=100, bounds=[-1, 1], update_to_zero_bounds=[0,0], mutation_scale_factor=1, 
                  crossover_rate=0.5, early_stopping_after_gens=None, cell_visibility=CellVisibility.SQUARE_EIGHT, 
@@ -33,7 +33,7 @@ class DifferentialEvolution:
         Params:
             - radius (int): the perception radius of the particles
             - tmax (int): the number of timesteps for each simulation
-            - domain_size (tuple of floats) [optional]: the dimensions of the domain
+            - grid_size (tuple of floats) [optional]: the dimensions of the domain
             - density (float) [optional]: the density of the particles within the domain
             - num_particles (int) [optional]: how many particles are within the domain
             - speed (float) [optional, default=1]: how fast the particles move
@@ -76,28 +76,28 @@ class DifferentialEvolution:
         self.predator_behaviour = predator_behaviour
         self.metric = metric
 
-        if any(ele is None for ele in domain_size) and (density == None or num_particles == None):
-            raise Exception("If you do not suppy a domain_size, you need to provide both the density and the number of particles.")
+        if any(ele is None for ele in grid_size) and (density == None or num_particles == None):
+            raise Exception("If you do not suppy a grid_size, you need to provide both the density and the number of particles.")
         elif density == None and num_particles == None:
             raise Exception("Please supply either the density or the number of particles.")
-        elif density != None and not any(ele is None for ele in domain_size):
+        elif density != None and not any(ele is None for ele in grid_size):
             self.density = density
-            self.domain_size = domain_size
-            self.num_particles = sprep.get_number_of_particles_for_constant_density(density, self.domain_size)
-        elif num_particles and not any(ele is None for ele in domain_size):
+            self.grid_size = grid_size
+            self.num_particles = sprep.get_number_of_particles_for_constant_density(density, self.grid_size)
+        elif num_particles and not any(ele is None for ele in grid_size):
             self.num_particles = num_particles
-            self.domain_size = domain_size
-            self.density = sprep.get_density(self.domain_size, self.num_particles)
+            self.grid_size = grid_size
+            self.density = sprep.get_density(self.grid_size, self.num_particles)
         else:
             self.density = density
             self.num_particles = num_particles
-            self.domain_size = sprep.get_domain_size_for_constant_density(self.density, self.num_particles)
+            self.grid_size = sprep.get_grid_size_for_constant_density(self.density, self.num_particles)
 
         self.c_value_size = self.num_directions
         if self.allow_stay:
             self.c_value_size += 1
 
-        print(f"dom={self.domain_size}, d={self.density}, n={self.num_particles}")
+        print(f"dom={self.grid_size}, d={self.density}, n={self.num_particles}")
 
     def create_initial_population(self):
         return np.random.uniform(low=self.bounds[0], high=self.bounds[1], size=((self.population_size, self.c_value_size)))
@@ -124,7 +124,7 @@ class DifferentialEvolution:
         for i in range(self.num_iterations_per_individual):
             simulator = SandpileModel(
                                         num_agents=self.num_particles,
-                                        grid_size=self.domain_size,
+                                        grid_size=self.grid_size,
                                         model=model,
                                         placement_type_prey=self.placement_type_prey,
                                         cell_visibility=self.cell_visibility,
