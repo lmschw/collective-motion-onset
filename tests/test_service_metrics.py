@@ -6,46 +6,48 @@ import services.service_metrics as smet
 
 class TestServiceMetrics(unittest.TestCase):
     def test_compute_longest_survival(self):
-        survivals = [[False, False, False], [False, False, False], [False, False, False]]
+        num_predators = 1
+        agents = [[], [], []]
         expected_timestep = -1
-        assert expected_timestep == smet.compute_longest_survival(survivals=survivals)
+        assert expected_timestep == smet.compute_longest_survival(agents=agents, num_predators=num_predators)
 
-        survivals = [[True, True, True], [False, False, False], [False, False, False]]
+        agents = [[1, 2, 3], [], []]
         expected_timestep = 0
-        assert expected_timestep == smet.compute_longest_survival(survivals=survivals)
+        assert expected_timestep == smet.compute_longest_survival(agents=agents, num_predators=num_predators)
 
-        survivals = [[True, True, False], [False, True, False], [False, False, False]]
+        agents = [[1, 2], [2], []]
         expected_timestep = 1
-        assert expected_timestep == smet.compute_longest_survival(survivals=survivals)
+        assert expected_timestep == smet.compute_longest_survival(agents=agents, num_predators=num_predators)
 
-        survivals = [[False, True, False], [False, True, False], [False, True, False]]
+        agents = [[2], [2], [2]]
         expected_timestep = 2
-        assert expected_timestep == smet.compute_longest_survival(survivals=survivals)
+        assert expected_timestep == smet.compute_longest_survival(agents=agents, num_predators=num_predators)
 
-        survivals = [[True, True, True], [True, True, True], [True, True, True]]
+        agents = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
         expected = 2
-        assert expected == smet.compute_longest_survival(survivals=survivals)
+        assert expected == smet.compute_longest_survival(agents=agents, num_predators=num_predators)
 
     def test_compute_num_survivors_at_the_end(self):
-        survivals = [[False, False, False], [False, False, False], [False, False, False]]
+        num_predators = 1
+        agents = [[], [], []]
         expected = 0
-        assert expected == smet.compute_num_survivors_at_the_end(survivals=survivals)
+        assert expected == smet.compute_num_survivors_at_the_end(agents=agents, num_predators=num_predators)
 
-        survivals = [[True, True, True], [False, False, False], [False, False, False]]
+        agents = [[1, 2, 3], [], []]
         expected = 0
-        assert expected == smet.compute_num_survivors_at_the_end(survivals=survivals)
+        assert expected == smet.compute_num_survivors_at_the_end(agents=agents, num_predators=num_predators)
 
-        survivals = [[True, True, False], [False, True, False], [False, False, False]]
+        agents = [[1, 2], [2], []]
         expected = 0
-        assert expected == smet.compute_num_survivors_at_the_end(survivals=survivals)
+        assert expected == smet.compute_num_survivors_at_the_end(agents=agents, num_predators=num_predators)
 
-        survivals = [[False, True, False], [False, True, False], [False, True, False]]
+        agents = [[2], [2], [2]]
         expected = 1
-        assert expected == smet.compute_num_survivors_at_the_end(survivals=survivals)
+        assert expected == smet.compute_num_survivors_at_the_end(agents=agents, num_predators=num_predators)
 
-        survivals = [[True, True, True], [True, True, True], [True, True, True]]
+        agents = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
         expected = 3
-        assert expected == smet.compute_num_survivors_at_the_end(survivals=survivals)
+        assert expected == smet.compute_num_survivors_at_the_end(agents=agents, num_predators=num_predators)
 
     def run_all(self):
         unittest.main(exit=False)
