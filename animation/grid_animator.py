@@ -45,5 +45,8 @@ class GridAnimator(Animator):
             points[i][1] = y
         #plt.plot(points[:,0],points[:,1],'ro')
         #print(points)
-        plt.scatter(points[:,0], points[:,1], c=colours)
+        plt.xlim(-1, self._domainSize[0])
+        plt.ylim(-1, self._domainSize[1])
+        plt.scatter(points[:,0], points[:,1], c=colours,  )
+        
         plt.title(f"$t$={t:.2f}")
