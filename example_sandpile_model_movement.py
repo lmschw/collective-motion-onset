@@ -13,7 +13,8 @@ from animation.animator_matplotlib import MatplotlibAnimator
 from animation.grid_animator import GridAnimator
 
 weights = np.array([0.78923, 0.,      0,      0.,      0,      0.02552, 1.,      0.     ])
-
+weights = np.array([0.0,0.15977112926290582,0.0,0.24335885406420038,0.44701763141229406,0.12221490128966903,0.0,0.02763748397093066])
+weights = np.array([0.011230748208120903,0.43914108664312007,0.0,0.5301038600277325,0.0,0.019524305121026497,0.0,0.0])
 
 tmax = 1000
 grid_size = (5,5)
@@ -43,24 +44,25 @@ fully_connected_layer.set_weights(weights=weights)
 nn.add(fully_connected_layer)
 nn.add(ActivationLayer(activation=snn.tanh, activation_prime=snn.tanh_prime))
 
-model = SandpileModel(
-                                        num_agents=num_particles,
-                                        grid_size=grid_size,
-                                        model=nn,
-                                        placement_type_prey=placemenent_prey,
-                                        cell_visibility=cell_visibility,
-                                        allow_stay=allow_stay,
-                                        agents_per_cell_limit=agent_per_cell_limit,
-                                        num_predators=num_predator,
-                                        predator_behaviour=PredatorBehaviour.NEAREST_PREY,
-                                        placement_type_predator=placement_predator,
-)
-simulation_data = model.simulate(tmax=tmax)
+for i in range(20):
+    model = SandpileModel(
+                                            num_agents=num_particles,
+                                            grid_size=grid_size,
+                                            model=nn,
+                                            placement_type_prey=placemenent_prey,
+                                            cell_visibility=cell_visibility,
+                                            allow_stay=allow_stay,
+                                            agents_per_cell_limit=agent_per_cell_limit,
+                                            num_predators=num_predator,
+                                            predator_behaviour=PredatorBehaviour.NEAREST_PREY,
+                                            placement_type_predator=placement_predator,
+    )
+    simulation_data = model.simulate(tmax=tmax)
 
-animation_filename_base = "test"
+    animation_filename_base = f"test_{i}"
 
-animation_filename = f"{animation_filename_base}"
-animator = MatplotlibAnimator(simulation_data, (grid_size[0],grid_size[1],100))
-preparedAnimator = animator.prepare(GridAnimator(), frames=tmax)
-preparedAnimator.setSimulationData(simulation_data=simulation_data, grid_size=grid_size, num_predators=num_predator)
-preparedAnimator.saveAnimation(f"{animation_filename}.mp4")
+    animation_filename = f"{animation_filename_base}"
+    animator = MatplotlibAnimator(simulation_data, (grid_size[0],grid_size[1],100))
+    preparedAnimator = animator.prepare(GridAnimator(), frames=tmax)
+    preparedAnimator.setSimulationData(simulation_data=simulation_data, grid_size=grid_size, num_predators=num_predator)
+    preparedAnimator.saveAnimation(f"{animation_filename}.mp4")
