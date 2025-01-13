@@ -33,6 +33,20 @@ class SandpileModel:
         if self.allow_stay:
             self.directions.append(self.num_directions + 1)
 
+    def get_model_params(self):
+        return {
+            "n": self.num_agents,
+            "grid_size": self.grid_size,
+            "placement_type_prey": self.placement_type_prey.name,
+            "cell_visibility": self.cell_visibility.name,
+            "allow_stay": self.allow_stay,
+            "agents_per_cell_limit": self.agents_per_cell_limit,
+            "num_predators": self.num_predators,
+            "predator_behaviour": self.predator_behaviour.name,
+            "placement_type_predator": self.placement_type_predator.name,
+            "model_summary": self.model.get_model_summary()
+        }
+
     def print_grid(self):
         line = "".join([f"\t{i}" for i in range(self.grid_size[1])])
         print(line)
