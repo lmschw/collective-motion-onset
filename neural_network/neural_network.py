@@ -4,6 +4,12 @@ class NeuralNetwork:
         self.loss = None
         self.loss_prime = None
 
+    def get_model_summary(self):
+        summary = "NN"
+        for layer in self.layers:
+            summary += f"_{layer.get_summary()}"
+        return summary
+
     # add layer to network
     def add(self, layer):
         self.layers.append(layer)

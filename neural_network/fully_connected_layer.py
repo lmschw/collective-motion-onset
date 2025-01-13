@@ -7,6 +7,9 @@ class FullyConnectedLayer:
         self.weights = np.random.rand(input_size, output_size) - 0.5
         self.bias = np.random.rand(1, output_size) - 0.5
 
+    def get_summary(self):
+        return f"FC_b={self.bias}_w={','.join([str(w) for w in self.weights])}"
+
     # returns output for a given input
     def forward_propagation(self, input_data):
         self.input = input_data

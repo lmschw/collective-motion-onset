@@ -3,6 +3,9 @@ class ActivationLayer:
         self.activation = activation
         self.activation_prime = activation_prime
 
+    def get_summary(self):
+        return f"A_a={self.activation.__name__}_ap={self.activation_prime.__name__}"
+
     # returns the activated input
     def forward_propagation(self, input_data):
         self.input = input_data

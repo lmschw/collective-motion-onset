@@ -30,5 +30,16 @@ class TestNeuralNetwork(unittest.TestCase):
         assert out[2][0][0] >= 0.5
         assert out[3][0][0] <= 0.5
 
+    def test_summary(self):
+        net = NeuralNetwork()
+        fc = FullyConnectedLayer(2,3)
+        fc.set_weights([0.4, 0.6])
+        net.add(fc)
+        net.add(ActivationLayer(snn.tanh, snn.tanh_prime))
+
+        expected_summary = f"NN_FC_b={fc.bias}_w=0.4,0.6_A_a=tanh_ap=tanh_prime"
+
+        assert expected_summary == net.get_model_summary()
+
     def run_all(self):
         unittest.main(exit=False)
