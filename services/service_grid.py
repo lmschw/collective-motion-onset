@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 def is_first_column(cell_idx, grid_size):
     return cell_idx < grid_size[0]
@@ -13,91 +14,111 @@ def is_bottom_row(cell_idx, grid_size):
     return cell_idx % grid_size[0] == (grid_size[0]-1)
 
 def get_adjacent_cross_cells_distance_one(cell_idx, grid_size):
-    # top is one less unless the cell is in the top row. Otherwise, it is the bottom of the same column 
-    if is_top_row(cell_idx=cell_idx, grid_size=grid_size):
-        top = cell_idx + grid_size[0] - 1
-    else:
-        top = cell_idx - 1
+    x, y = get_x_y_for_cell_idx(cell_idx=cell_idx, grid_size=grid_size)
+    top_x = (x-1) % grid_size[0]
+    bottom_x = (x+1) % grid_size[0]
+    left_y = (y-1) % grid_size[1]
+    right_y = (y+1) % grid_size[1]
 
-    # bottom is one more than the current cell unless the cell is in the bottom row. In that case, it is the top of the same column
-    if is_bottom_row(cell_idx=cell_idx, grid_size=grid_size):
-        bottom = cell_idx % grid_size[0] - grid_size[0] + 1 + (math.floor(cell_idx / grid_size[0]) * grid_size[0])
-    else:
-        bottom = cell_idx + 1
-
-    # left is one whole column less than the current index except when we are in the first column. Then it is the equivalent in the last column
-    if is_first_column(cell_idx=cell_idx, grid_size=grid_size):
-        left = cell_idx + (grid_size[0] * (grid_size[1]-1))
-    else:
-        left = cell_idx - grid_size[0]
-    
-    # right is one whole colum more than the current index except when we are in the last column. THen it is the equivalent in the first column
-    if is_last_column(cell_idx=cell_idx, grid_size=grid_size):
-        right = cell_idx % grid_size[0]
-    else:
-        right = cell_idx + grid_size[0]
+    top = get_grid_cell_idx(x=top_x, y=y, grid_size=grid_size)
+    right = get_grid_cell_idx(x=x, y=right_y, grid_size=grid_size)
+    bottom = get_grid_cell_idx(x=bottom_x, y=y, grid_size=grid_size)
+    left = get_grid_cell_idx(x=x, y=left_y, grid_size=grid_size)
 
     return [top, right, bottom, left]
 
+def get_adjacent_cross_cells_distance_two(cell_idx, grid_size):
+    top, right, bottom, left = get_adjacent_cross_cells_distance_one(cell_idx=cell_idx, grid_size=grid_size)
+
+    x, y = get_x_y_for_cell_idx(cell_idx=cell_idx, grid_size=grid_size)
+    top_two_x = (x-2) % grid_size[0]
+    bottom_two_x = (x+2) % grid_size[0]
+    left_two_y = (y-2) % grid_size[1]
+    right_two_y = (y+2) % grid_size[1]
+
+    top_two = get_grid_cell_idx(x=top_two_x, y=y, grid_size=grid_size)
+    right_two = get_grid_cell_idx(x=x, y=right_two_y, grid_size=grid_size)
+    bottom_two = get_grid_cell_idx(x=bottom_two_x, y=y, grid_size=grid_size)
+    left_two = get_grid_cell_idx(x=x, y=left_two_y, grid_size=grid_size)
+
+    return top, right, bottom, left, top_two, right_two, bottom_two, left_two
+
 def get_adjacent_square_cells_eight(cell_idx, grid_size):
     top, right, bottom, left = get_adjacent_cross_cells_distance_one(cell_idx=cell_idx, grid_size=grid_size)
-    is_top = is_top_row(cell_idx=cell_idx, grid_size=grid_size)
-    is_bottom = is_bottom_row(cell_idx=cell_idx, grid_size=grid_size)
-    is_first = is_first_column(cell_idx=cell_idx, grid_size=grid_size)
-    is_last = is_last_column(cell_idx=cell_idx, grid_size=grid_size)
-    # top right for the top right corner is the bottom left corner
-    if is_top and is_last:
-        top_right = grid_size[0] - 1
-    # top right for the top row is the last cell on the next column
-    elif is_top:
-        top_right = cell_idx + (2 * grid_size[0]) - 1
-    # top right for the last column is the first cell in the row above
-    elif is_last:
-        top_right = cell_idx % grid_size[0] - 1
-    # for all others
-    else:
-        top_right = cell_idx + grid_size[0] - 1
+    x, y = get_x_y_for_cell_idx(cell_idx=cell_idx, grid_size=grid_size)
+    top_x = (x-1) % grid_size[0]
+    bottom_x = (x+1) % grid_size[0]
+    left_y = (y-1) % grid_size[1]
+    right_y = (y+1) % grid_size[1]
 
-    # bottom right for the bottom right corner is the top left cell
-    if is_bottom and is_last:
-        bottom_right = 0
-    # bottom right for the bottom row is the top cell in the next column, so the next cell
-    elif is_bottom:
-        bottom_right = cell_idx + 1
-    # bottom right for the last column is the corresponding cell in the first column + 1
-    elif is_last:
-        bottom_right = (cell_idx % grid_size[0]) + 1
-    else:
-        bottom_right = cell_idx + grid_size[0] + 1
-
-    # bottom left for the bottom left corner is the top right cell
-    if is_bottom and is_first:
-        bottom_left = grid_size[0] * (grid_size[1]-1)
-    # bottom left for the bottom row is the first cell in the previous column
-    elif is_bottom:
-        bottom_left = cell_idx - 2*grid_size[0] + 1
-    # bottom left or the first column is the cell on the next row in the last column
-    elif is_first:
-        bottom_left = grid_size[0] * (grid_size[1]-1) + (cell_idx % grid_size[0]) + 1
-    else:
-        bottom_left = cell_idx - grid_size[0] + 1
-
-    # top left for the top left corner is the very last cell in the grid
-    if is_top and is_first:
-        top_left = (grid_size[0] * grid_size[1]) - 1
-    # top left for the top row is the last cell in the previous column, i.e. the previous cell
-    elif is_top:
-        top_left = cell_idx - 1
-    # top left for the first column is the cell in the previous row in the last column
-    elif is_first:
-        top_left = (grid_size[0] * (grid_size[1]-1)) + (cell_idx % grid_size[0]) - 1
-    else:
-        top_left = cell_idx - grid_size[0] -1
+    top_right = get_grid_cell_idx(x=top_x, y=right_y, grid_size=grid_size)
+    bottom_right = get_grid_cell_idx(x=bottom_x, y=right_y, grid_size=grid_size)
+    bottom_left = get_grid_cell_idx(x=bottom_x, y=left_y, grid_size=grid_size)
+    top_left = get_grid_cell_idx(x=top_x, y=left_y, grid_size=grid_size)
 
     return [top, top_right, right, bottom_right, bottom, bottom_left, left, top_left]
+
+def get_adjacent_square_cells_twenty_four(cell_idx, grid_size):
+    """
+    t1          t2          t3          t4              t5
+    l1          top_left    top         top_right       r1
+    l2          left        cell_idx    right           r2
+    l3          bottom_left bottom      bottom_right    r3
+    b1          b2          b3          b4              b5        
+    """
+    top, top_right, right, bottom_right, bottom, bottom_left, left, top_left = get_adjacent_square_cells_eight(cell_idx=cell_idx, grid_size=grid_size)
+    
+    x, y = get_x_y_for_cell_idx(cell_idx=cell_idx, grid_size=grid_size)
+    top_two_x = (x-2) % grid_size[0]
+    top_one_x = (x-1) % grid_size[0]
+    bottom_one_x = (x+1) % grid_size[0]
+    bottom_two_x = (x+2) % grid_size[0]
+    left_two_y = (y-2) % grid_size[1]
+    left_one_y = (y-1) % grid_size[1]
+    right_one_y = (y+1) % grid_size[1]
+    right_two_y = (y+2) % grid_size[1]
+
+    t1 = get_grid_cell_idx(x=top_two_x, y=left_two_y, grid_size=grid_size)
+    t2 = get_grid_cell_idx(x=top_two_x, y=left_one_y, grid_size=grid_size)
+    t3 = get_grid_cell_idx(x=top_two_x, y=y, grid_size=grid_size)
+    t4 = get_grid_cell_idx(x=top_two_x, y=right_one_y, grid_size=grid_size)
+    t5 = get_grid_cell_idx(x=top_two_x, y=right_two_y, grid_size=grid_size)
+    r1 = get_grid_cell_idx(x=top_one_x, y=right_two_y, grid_size=grid_size)
+    r2 = get_grid_cell_idx(x=x, y=right_two_y, grid_size=grid_size)
+    r3 = get_grid_cell_idx(x=bottom_one_x, y=right_two_y, grid_size=grid_size)
+    b1 = get_grid_cell_idx(x=bottom_two_x, y=left_two_y, grid_size=grid_size)
+    b2 = get_grid_cell_idx(x=bottom_two_x, y=left_one_y, grid_size=grid_size)
+    b3 = get_grid_cell_idx(x=bottom_two_x, y=y, grid_size=grid_size)
+    b4 = get_grid_cell_idx(x=bottom_two_x, y=right_one_y, grid_size=grid_size)
+    b5 = get_grid_cell_idx(x=bottom_two_x, y=right_two_y, grid_size=grid_size)
+    l1 = get_grid_cell_idx(x=top_one_x, y=left_two_y, grid_size=grid_size)
+    l2 = get_grid_cell_idx(x=x, y=left_two_y, grid_size=grid_size)
+    l3 = get_grid_cell_idx(x=bottom_one_x, y=left_two_y, grid_size=grid_size)
+
+    return [top, top_right, right, bottom_right, bottom, bottom_left, left, top_left, t1, t2, t3, t4, t5, r1, r2, r3, b5, b4, b3, b2, b1, l3, l2, l1]
 
 def get_grid_cell_idx(x, y, grid_size):
     return y * grid_size[0] + x
 
 def get_x_y_for_cell_idx(cell_idx, grid_size):
     return cell_idx % grid_size[0], int(cell_idx / grid_size[0])
+
+def get_grid_string(grid, grid_size, num_predators):
+    output = "".join([f"\t{i}" for i in range(grid_size[1])])
+    print(line)
+    for x in range(grid_size[0]):
+        line = f"{x}"
+        for y in range(grid_size[1]):
+            cell_idx = get_grid_cell_idx(x=x, y=y, grid_size=grid_size)
+            cell = np.array(grid[cell_idx])
+            preys = cell[cell >= num_predators]
+
+            cell_idx = get_grid_cell_idx(x=x, y=y, grid_size=grid_size)
+            cell = np.array(grid[cell_idx])
+            predators = cell[cell < num_predators]
+            
+            prey_string = "".join([f"P{i}" for i in preys])
+            predator_string = "".join([f"H{i}" for i in predators])
+            line += f"\t{predator_string}{prey_string}"
+        output += f"\n{line}"
+    return output
