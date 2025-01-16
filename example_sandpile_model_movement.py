@@ -15,9 +15,11 @@ from animation.grid_animator import GridAnimator
 weights = np.array([0.78923, 0.,      0,      0.,      0,      0.02552, 1.,      0.     ])
 weights = np.array([0.0,0.15977112926290582,0.0,0.24335885406420038,0.44701763141229406,0.12221490128966903,0.0,0.02763748397093066])
 weights = np.array([0.011230748208120903,0.43914108664312007,0.0,0.5301038600277325,0.0,0.019524305121026497,0.0,0.0])
+weights = np.array([0.16971685891435456,0.11137194493897958,0.14723019563955467,0.023575120463645842,0.0,0.08853697441997814,0.24201549687527896,0.21755340874820814])
+
 
 tmax = 1000
-grid_size = (5,5)
+grid_size = (25,25)
 density = 0.3
 num_particles = None
 num_generations = 20
@@ -32,6 +34,7 @@ agent_per_cell_limit = 2
 placemenent_prey = PlacementTypePrey.RANDOM
 placement_predator = PlacementTypePredator.RANDOM
 num_predator = 1
+predator_random_movement_after = 50
 
 if num_particles == None:
     num_particles = sprep.get_number_of_particles_for_constant_density_for_grid(density=density, grid_size=grid_size, agents_per_cell_limit=agent_per_cell_limit)
@@ -56,10 +59,13 @@ for i in range(20):
                                             num_predators=num_predator,
                                             predator_behaviour=PredatorBehaviour.NEAREST_PREY,
                                             placement_type_predator=placement_predator,
+                                            predator_random_movement_after=predator_random_movement_after
     )
     simulation_data = model.simulate(tmax=tmax)
 
     animation_filename_base = f"test_{i}"
+
+    
 
     animation_filename = f"{animation_filename_base}"
     animator = MatplotlibAnimator(simulation_data, (grid_size[0],grid_size[1],100))

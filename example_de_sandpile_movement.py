@@ -9,7 +9,7 @@ import services.service_logging as slog
 import services.service_helper as shelp
 
 tmax = 1000
-grid_size = (5,5)
+grid_size = (25,25)
 num_particles = None
 num_generations = 20
 num_ind_iters = 10
@@ -24,6 +24,7 @@ agent_per_cell_limit = 2
 placemenent_prey = PlacementTypePrey.RANDOM
 placement_predator = PlacementTypePredator.RANDOM
 num_predator = 1
+predator_random_movement_after = 50
 metric = Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP
 
 for num_predator in [1, 2, 3]:
@@ -57,6 +58,7 @@ for num_predator in [1, 2, 3]:
                                             placement_type_prey=placemenent_prey,
                                             placement_type_predator=placement_predator,
                                             num_predators=num_predator,
+                                            predator_random_movement_after=predator_random_movement_after,
                                             metric=metric)
 
                     

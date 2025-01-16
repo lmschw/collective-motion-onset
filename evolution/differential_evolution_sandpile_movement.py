@@ -26,7 +26,8 @@ class DifferentialEvolution:
                  crossover_rate=0.5, early_stopping_after_gens=None, cell_visibility=CellVisibility.SQUARE_EIGHT, 
                  allow_stay=True, agents_per_cell_limit=2, placement_type_prey=PlacementTypePrey.RANDOM, 
                  placement_type_predator=PlacementTypePredator.RANDOM, num_predators=1, 
-                 predator_behaviour=PredatorBehaviour.NEAREST_PREY, metric=Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP):
+                 predator_behaviour=PredatorBehaviour.NEAREST_PREY, predator_random_movement_after=50,
+                 metric=Metrics.NUMBER_OF_SURVIVORS_AT_FINAL_TIMESTEP):
         """
         Models the DE approach.
 
@@ -69,6 +70,7 @@ class DifferentialEvolution:
         self.placement_type_predator = placement_type_predator
         self.num_predators = num_predators
         self.predator_behaviour = predator_behaviour
+        self.predator_random_movement_after = predator_random_movement_after
         self.metric = metric
 
         if any(ele is None for ele in grid_size) and (density == None or num_particles == None):
@@ -130,6 +132,7 @@ class DifferentialEvolution:
                                         num_predators=self.num_predators,
                                         predator_behaviour=self.predator_behaviour,
                                         placement_type_predator=self.placement_type_predator,
+                                        predator_random_movement_after=self.predator_random_movement_after
                                     )
             agents, placements, grid = simulator.simulate(tmax=self.tmax)
             results.append(self.evaluate_results(agents=agents))

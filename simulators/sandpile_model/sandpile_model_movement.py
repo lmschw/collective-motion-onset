@@ -13,7 +13,7 @@ class SandpileModel:
 
     def __init__(self, num_agents, grid_size, model, placement_type_prey, cell_visibility, allow_stay=True,
                  agents_per_cell_limit=2, num_predators=1, predator_behaviour=PredatorBehaviour.NEAREST_PREY, 
-                 placement_type_predator=PlacementTypePredator.RANDOM):
+                 placement_type_predator=PlacementTypePredator.RANDOM, predator_random_movement_after=50):
         self.num_agents = num_agents
         self.grid_size = grid_size
         self.model = model
@@ -24,8 +24,10 @@ class SandpileModel:
         self.num_predators = num_predators
         self.predator_behaviour = predator_behaviour
         self.placement_type_predator = placement_type_predator
+        self.predator_random_movement_after = predator_random_movement_after
 
         self.agents = [i for i in range(self.num_agents + self.num_predators)]
+        self.last_predator_movements = np.zeros(self.num_predators)
 
         # TODO: replace with an enum to allow movement other than cross
         self.num_directions = 4
@@ -44,6 +46,7 @@ class SandpileModel:
             "num_predators": self.num_predators,
             "predator_behaviour": self.predator_behaviour.name,
             "placement_type_predator": self.placement_type_predator.name,
+            "predator_random_movement_after": self.predator_random_movement_after,
             "model_summary": self.model.get_model_summary()
         }
 
@@ -298,13 +301,18 @@ class SandpileModel:
                 pass 
         return sgrid.get_grid_cell_idx(x, y, self.grid_size)
 
-    def make_moves(self, grid, placements):
+    def make_moves(self, grid, placements, t):
         self.grid = copy.deepcopy(grid)
         self.placements = copy.deepcopy(placements)
         for agent in self.agents:
             cell_idx = self.placements[agent]
             if self.is_predator(agent_id=agent):
                 direction = self.pick_predator_direction(agent_id=agent)
+                if direction != 4:
+                    self.last_predator_movements[agent] = t
+                elif (t-self.last_predator_movements[agent]) > self.predator_random_movement_after:
+                    direction = np.random.randint(0, 4)
+                    self.last_predator_movements[agent] = t
             else:
                 neighbourhood = self.get_neighbourhood(agent)
                 direction = self.pick_prey_direction(neighbourhood=neighbourhood)
@@ -321,7 +329,7 @@ class SandpileModel:
         agents_history = []
         grid, placements = self.initialise_grid()
         for t in range(tmax):
-            grid, placements = self.make_moves(grid, placements)
+            grid, placements = self.make_moves(grid, placements, t)
             self.grid = grid
             self.placements = placements
             self.eliminate_prey()
