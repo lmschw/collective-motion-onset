@@ -41,7 +41,15 @@ class GridAnimator(Animator):
         for i, agent in enumerate(self.agents[t]):
             if agent < self.num_predators:
                 colours[i] = 'r'
+            elif agent == self.num_predators:
+                colours[i] = 'y'
             x, y = sgrid.get_x_y_for_cell_idx(self.placements[t][agent], self._domainSize)
+            y += 0.5 # to move them into the grid space
+            if len(self.grid[t][self.placements[t][agent]]) > 1: # TODO generalise for higher per cell limit
+                if agent == min(self.grid[t][self.placements[t][agent]]):
+                    x -= 0.2
+                else:
+                    x += 0.2
             points[i][0] = x
             points[i][1] = y
         plt.xlim(-1, self._domainSize[0])
