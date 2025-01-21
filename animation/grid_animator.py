@@ -59,6 +59,8 @@ class GridAnimator(Animator):
         plt.gca().xaxis.set_minor_locator(AutoMinorLocator(self._domainSize[0]//5 -1))
         plt.gca().yaxis.set_minor_locator(AutoMinorLocator(self._domainSize[1]//5 -1))
         plt.scatter(points[:,0], points[:,1], c=colours)
+        for i in range(len(self.agents[t])):
+            plt.gca().annotate(i, (points[i,0], points[i,1]))
         plt.gca().grid(which='major', color='#CCCCCC', linestyle='--')
         plt.gca().grid(which='minor', color='#CCCCCC', linestyle=':')
         plt.title(f"$t$={t:.2f}")
